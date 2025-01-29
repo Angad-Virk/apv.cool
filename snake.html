@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #2c3e50;
+            margin: 0;
+            height: 100vh;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            color: #ecf0f1;
+        }
+
+        #gameCanvas {
+            border: 2px solid #ecf0f1;
+            background-color: #34495e;
+        }
+
+        .panel {
+            margin: 10px;
+            padding: 15px;
+            background: #2c3e50;
+            border: 1px solid #ecf0f1;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            background: #3498db;
+            border: none;
+            color: white;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .settings {
+            display: flex;
+            gap: 20px;
+            margin: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        label {
+            display: block;
+            margin: 5px 0;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        Score: <span id="score">0</span> | 
+        High Score: <span id="highScore">0</span>
+    </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    
+    <div class="settings">
+        <div class="panel">
+            <h3>Settings</h3>
+            <label>
+                <input type="checkbox" id="wallCollision"> Wall Collision
+            </label>
+            <label>
+                Multi-Food Mode:
+                <input type="number" id="foodCount" min="2" max="40" value="1">
+            </label>
+        </div>
+    </div>
+
+    <button id="startBtn">Start Game</button>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const startBtn = document.getElementById('startBtn');
+        const wallCollisionCheckbox = document.getElementById('wallCollision');
+        const foodCountInput = document.getElementById('foodCount');
+
+        // Game constants
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        let score = 0;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let snake = [];
+        let foods = [];
+        let dx = 0;
+        let dy = 0;
+        let gameLoop;
+        let gameStarted = false;
+
+        // Initialize high score display
+        highScoreElement.textContent = highScore;
+
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        wallCollisionCheckbox.addEventListener('change', saveSettings);
+        foodCountInput.addEventListener('change', saveSettings);
+        document.addEventListener('keydown', handleKeyDown);
+
+        // Load saved settings
+        loadSettings();
+
+        function startGame() {
+            gameStarted = true;
+            canvas.focus();
+            snake = [{ x: 100, y: 100 }]; // Start in the middle
+            score = 0;
+            scoreElement.textContent = score;
+            dx = gridSize;
+            dy = 0;
+            generateFoods();
+            
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(update, 100);
+            startBtn.classList.add('hidden');
+        }
+
+        function update() {
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            
+            // Wall collision logic
+            if (wallCollisionCheckbox.checked) {
+                if (head.x < 0 || head.x >= canvas.width || 
+                    head.y < 0 || head.y >= canvas.height) {
+                    gameOver();
+                    return;
+                }
+            } else {
+                // Wrap around
+                if (head.x < 0) head.x = canvas.width - gridSize;
+                if (head.x >= canvas.width) head.x = 0;
+                if (head.y < 0) head.y = canvas.height - gridSize;
+                if (head.y >= canvas.height) head.y = 0;
+            }
+
+            // Self collision
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            // Food collision
+            let foodEaten = false;
+            foods = foods.filter(food => {
+                if (head.x === food.x && head.y === food.y) {
+                    score += 10;
+                    scoreElement.textContent = score;
+                    if (score > highScore) {
+                        highScore = score;
+                        highScoreElement.textContent = highScore;
+                        localStorage.setItem('snakeHighScore', highScore);
+                    }
+                    foodEaten = true;
+                    return false; // Remove eaten food
+                }
+                return true;
+            });
+
+            if (foodEaten) {
+                generateFoods();
+            } else {
+                snake.pop();
+            }
+
+            draw();
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#34495e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw snake
+            ctx.fillStyle = '#2ecc71'; // Green body
+            snake.forEach((segment, index) => {
+                if (index === 0) {
+                    ctx.fillStyle = '#e74c3c'; // Red head
+                }
+                ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+            });
+
+            // Draw foods
+            ctx.fillStyle = '#f1c40f'; // Yellow food
+            foods.forEach(food => {
+                ctx.fillRect(food.x, food.y, gridSize, gridSize);
+            });
+        }
+
+        function generateFoods() {
+            const foodCount = parseInt(foodCountInput.value);
+            while (foods.length < foodCount) {
+                let newFood;
+                do {
+                    newFood = {
+                        x: Math.floor(Math.random() * tileCount) * gridSize,
+                        y: Math.floor(Math.random() * tileCount) * gridSize
+                    };
+                } while (
+                    snake.some(segment => segment.x === newFood.x && segment.y === newFood.y) ||
+                    foods.some(food => food.x === newFood.x && food.y === newFood.y)
+                );
+                foods.push(newFood);
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (!gameStarted) return;
+            event.preventDefault();
+            
+            const goingUp = dy === -gridSize;
+            const goingDown = dy === gridSize;
+            const goingRight = dx === gridSize;
+            const goingLeft = dx === -gridSize;
+
+            switch(event.key) {
+                case 'ArrowLeft':
+                    if (!goingRight) { dx = -gridSize; dy = 0; }
+                    break;
+                case 'ArrowUp':
+                    if (!goingDown) { dx = 0; dy = -gridSize; }
+                    break;
+                case 'ArrowRight':
+                    if (!goingLeft) { dx = gridSize; dy = 0; }
+                    break;
+                case 'ArrowDown':
+                    if (!goingUp) { dx = 0; dy = gridSize; }
+                    break;
+            }
+        }
+
+        function gameOver() {
+            clearInterval(gameLoop);
+            gameStarted = false;
+            startBtn.classList.remove('hidden');
+            alert(`Game Over! Score: ${score}`);
+        }
+
+        function saveSettings() {
+            localStorage.setItem('wallCollision', wallCollisionCheckbox.checked);
+            localStorage.setItem('foodCount', foodCountInput.value);
+        }
+
+        function loadSettings() {
+            const savedCollision = localStorage.getItem('wallCollision');
+            const savedFoodCount = localStorage.getItem('foodCount');
+            wallCollisionCheckbox.checked = savedCollision === 'true';
+            foodCountInput.value = savedFoodCount || 1;
+        }
+    </script>
+</body>
+</html>

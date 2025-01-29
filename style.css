@@ -1,0 +1,163 @@
+/* style.css */
+:root {
+    --space-deep: #0B0D21;
+    --nebula-purple: #6C4AB6;
+    --starry-blue: #2D46B9;
+    --cosmic-pink: #FF69B4;
+    --galaxy-teal: #00E5CC;
+    --metallic-silver: #C0C0C0;
+    --star-yellow: #FFD700;
+    --font-orbitron: 'Orbitron', sans-serif;
+    --font-space-mono: 'Space Mono', monospace;
+    --space-gradient: linear-gradient(45deg, var(--space-deep) 0%, var(--starry-blue) 100%);
+}
+
+body {
+    font-family: var(--font-space-mono);
+    background: var(--space-deep);
+    color: var(--metallic-silver);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Cosmic Background Effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 80%, var(--nebula-purple) 0%, transparent 30%),
+        radial-gradient(circle at 80% 20%, var(--starry-blue) 0%, transparent 30%),
+        var(--space-deep);
+    z-index: -1;
+    opacity: 0.7;
+}
+
+header {
+    background: rgba(11, 13, 33, 0.9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    padding: 1rem 2rem;
+    border-bottom: 2px solid var(--galaxy-teal);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-family: var(--font-orbitron);
+    font-size: 2.5rem;
+    background: linear-gradient(45deg, var(--galaxy-teal), var(--cosmic-pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 15px rgba(0, 229, 204, 0.5);
+    position: relative;
+    letter-spacing: 2px;
+}
+
+.logo::after {
+    content: ".cool";
+    font-family: 'Space Mono', monospace;
+    font-size: 1.2rem;
+    color: var(--star-yellow);
+    position: absolute;
+    right: -2.5rem;
+    bottom: 0.5rem;
+    text-shadow: 0 0 10px var(--star-yellow);
+}
+
+/* Holographic Menu */
+.desktop-nav {
+    display: flex;
+    gap: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    -webkit-backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    border: 1px solid var(--galaxy-teal);
+}
+
+.desktop-nav a {
+    color: var(--metallic-silver);
+    text-decoration: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.desktop-nav a:hover {
+    background: linear-gradient(45deg, var(--nebula-purple), var(--starry-blue));
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px var(--galaxy-teal);
+}
+
+/* Game Cards - Floating Space Stations */
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 3rem;
+}
+
+.game-card {
+    background: rgba(45, 70, 185, 0.1);
+    border: 2px solid var(--galaxy-teal);
+    border-radius: 15px;
+    padding: 1.5rem;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.game-card:hover {
+    transform: translateY(-10px) rotateX(10deg);
+    box-shadow: 0 0 30px var(--nebula-purple);
+}
+
+.game-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, var(--galaxy-teal), transparent);
+    animation: cosmicFlow 4s linear infinite;
+}
+
+@keyframes cosmicFlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 2048 Special Card */
+.game-card[data-game="2048"] {
+    border-color: var(--cosmic-pink);
+    background: linear-gradient(45deg, rgba(108, 74, 182, 0.3), rgba(255, 105, 180, 0.3));
+}
+
+.game-card[data-game="2048"] h3 {
+    font-family: var(--font-orbitron);
+    color: var(--cosmic-pink);
+    text-shadow: 0 0 15px var(--cosmic-pink);
+}
+
+/* Add these to HTML head in your HTML file */
