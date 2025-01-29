@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tic Tac Toe vs Bot</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; background: #0B0D21; color: #C0C0C0; font-family: 'Space Mono', monospace; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 5px; margin: 20px; }
+        .cell { width: 100px; height: 100px; background: rgba(45, 70, 185, 0.1); border: 2px solid #00E5CC; display: flex; justify-content: center; align-items: center; font-size: 40px; cursor: pointer; transition: 0.3s; }
+        .cell:hover { background: rgba(108, 74, 182, 0.2); }
+        #status { margin-top: 20px; font-size: 1.2em; }
+        #bot-toggle { margin: 10px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Tic-Tac-Toe</h1>
+    <label>
+        <input type="checkbox" id="bot-toggle"> Play against Bot (O)
+    </label>
+    <div class="board" id="board"></div>
+    <div id="status">Player X's turn</div>
+
+    <script>
+        let currentPlayer = 'X';
+        let gameActive = true;
+        const board = Array(9).fill('');
+        let vsBot = false;
+
+        document.getElementById('bot-toggle').addEventListener('change', (e) => {
+            vsBot = e.target.checked;
+            resetGame();
+        });
+
+        function initBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            board.forEach((_, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.setAttribute('data-index', index);
+                cell.addEventListener('click', handleClick);
+                boardEl.appendChild(cell);
+            });
+        }
+
+        function handleClick(e) {
+            if (!gameActive || (vsBot && currentPlayer === 'O')) return;
+            
+            const index = e.target.getAttribute('data-index');
+            if (board[index]) return;
+            
+            makeMove(index, e.target);
+            
+            if (vsBot && gameActive) {
+                setTimeout(botMove, 500);
+            }
+        }
+
+        function makeMove(index, element) {
+            board[index] = currentPlayer;
+            element.textContent = currentPlayer;
+            
+            if (checkWin()) {
+                document.getElementById('status').textContent = `Player ${currentPlayer} wins!`;
+                gameActive = false;
+                return;
+            }
+            
+            if (board.every(cell => cell)) {
+                document.getElementById('status').textContent = "Draw!";
+                gameActive = false;
+                return;
+            }
+            
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            document.getElementById('status').textContent = `Player ${currentPlayer}'s turn`;
+        }
+
+        function botMove() {
+            if (!gameActive || currentPlayer !== 'O') return;
+            
+            const emptyCells = board
+                .map((cell, index) => cell === '' ? index : null)
+                .filter(cell => cell !== null);
+            
+            if (emptyCells.length > 0) {
+                const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                board[randomIndex] = 'O';
+                document.querySelector(`[data-index="${randomIndex}"]`).textContent = 'O';
+                
+                if (checkWin()) {
+                    document.getElementById('status').textContent = 'Bot (O) wins!';
+                    gameActive = false;
+                    return;
+                }
+                
+                currentPlayer = 'X';
+                document.getElementById('status').textContent = 'Player X\'s turn';
+            }
+        }
+
+        function checkWin() {
+            const winPatterns = [
+                [0,1,2], [3,4,5], [6,7,8],
+                [0,3,6], [1,4,7], [2,5,8],
+                [0,4,8], [2,4,6]
+            ];
+            return winPatterns.some(pattern => 
+                pattern.every(index => board[index] === currentPlayer)
+            );
+        }
+
+        function resetGame() {
+            board.fill('');
+            gameActive = true;
+            currentPlayer = 'X';
+            document.getElementById('status').textContent = 'Player X\'s turn';
+            initBoard();
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>
